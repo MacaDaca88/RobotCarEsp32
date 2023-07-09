@@ -3,9 +3,9 @@
 #include <BluetoothSerial.h>
 
 // Blynk Setup
-char auth[] = "P8MOcCxUZSXh52mYOBd8ocaTkq-SPA2W";  // Your Blynk auth token
-char ssid[] = "Tip-jar";                           // Your Wi-Fi network SSID
-char password[] = "PASSWORD1234LOL";               // Your Wi-Fi network password
+char auth[] = "P8MOcCxUZSXh52mYOBd8ocaTkq-SPA2W";  
+char ssid[] = "Tip-jar";
+char password[] = "PASSWORD1234LOL";            
 
 // Motor Pins
 int EN_A = 12;  // Enable pin for the first motor
@@ -138,7 +138,7 @@ BLYNK_WRITE(V1) {
 }
 
 BLYNK_WRITE(V3) {
-  int speedControl = param.asInt();  // Get the speed control value from the Blynk app
+  int speedControl = param.asInt();  
 
   // analogWrite(motor_speed, speedControl);
   // analogWrite(motor_speed1, speedControl);
@@ -191,8 +191,7 @@ BLYNK_WRITE(V7) {
 }
 
 void processBluetoothCommand(char command) {
-  // Implement your Bluetooth command processing logic here
-  // Example: You can map the received commands to specific actions
+
   Serial.println(command);
 
   switch (command) {
@@ -202,7 +201,6 @@ void processBluetoothCommand(char command) {
       digitalWrite(IN3, HIGH);
       digitalWrite(IN4, LOW);
       // Move forward
-      // Implement your motor control logic here
       break;
 
     case 'B':
@@ -211,7 +209,6 @@ void processBluetoothCommand(char command) {
       digitalWrite(IN3, LOW);
       digitalWrite(IN4, HIGH);
       // Move backward
-      // Implement your motor control logic here
       break;
 
     case 'L':
@@ -220,7 +217,6 @@ void processBluetoothCommand(char command) {
       digitalWrite(IN3, HIGH);
       digitalWrite(IN4, LOW);
       // Turn left
-      // Implement your motor control logic here
       break;
 
     case 'R':
@@ -229,7 +225,6 @@ void processBluetoothCommand(char command) {
       digitalWrite(IN3, HIGH);
       digitalWrite(IN4, LOW);
       // Turn right
-      // Implement your motor control logic here
       break;
 
     case 'S':
@@ -238,15 +233,12 @@ void processBluetoothCommand(char command) {
       digitalWrite(IN3, LOW);
       digitalWrite(IN4, LOW);
       // Stop
-      // Implement your motor control logic here
       break;
 
     case 'H':
       // Toggle headlights
-      // Implement your headlight control logic here
       break;
 
-    // Add more commands as needed
 
     default:
       // Invalid command
