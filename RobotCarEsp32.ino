@@ -2,11 +2,10 @@
 #include <BlynkSimpleEsp32.h>
 #include <BluetoothSerial.h>
 
-//Blynk Setup
+// Blynk Setup
 char auth[] = "P8MOcCxUZSXh52mYOBd8ocaTkq-SPA2W";  // Your Blynk auth token
 char ssid[] = "Tip-jar";                           // Your Wi-Fi network SSID
 char password[] = "PASSWORD1234LOL";               // Your Wi-Fi network password
-
 
 // Motor Pins
 int EN_A = 12;  // Enable pin for the first motor
@@ -22,16 +21,15 @@ const int spotlight = 0;
 const int leftindercator = 4;
 const int rightindercator = 15;
 
-//Floating variables to store data
+// Floating variables to store data
 int motor_speed;
 int motor_speed1;
 
-//Fixed variables to store data
+// Fixed variables to store data
 int headlightsState = 0;
-int rightindecatorstate = 0;
-int leftindecatorstate = 0;
+int rightindercatorstate = 0;
+int leftindercatorstate = 0;
 int spotlightstate = 0;
-
 
 BluetoothSerial SerialBT;
 
@@ -68,7 +66,6 @@ BLYNK_WRITE(V1) {
   Serial.println(y);
   Serial.print("X = ");
   Serial.println(x);
-
 
   if (x < 120) {
     motor_speed = map(x, 120, 0, 0, 255);
@@ -113,13 +110,13 @@ BLYNK_WRITE(V1) {
     Serial.println(motor_speed);
     Serial.print("Motor B Speed: ");
     Serial.println(motor_speed1);
-    
-    //Motors forward
+
+    // Motors forward
   } else if (y > 170 && y < 255) {
     motor_speed1 = map(y, 170, 255, 0, 255);
     motor_speed = map(y, 170, 255, 0, 255);
     digitalWrite(IN1, LOW);
-    digitalWrite(IN2, HIGH);
+   digitalWrite(IN2, HIGH);
     digitalWrite(IN3, LOW);
     digitalWrite(IN4, HIGH);
     analogWrite(EN_A, motor_speed);
@@ -154,7 +151,6 @@ BLYNK_WRITE(V3) {
 BLYNK_WRITE(V4) {
   int headlightsStateNew = param.asInt();
 
-
   if (headlightsStateNew == 1) {
     digitalWrite(headlightPin, HIGH);
     Blynk.virtualWrite(V5, "Headlights: ON");
@@ -179,9 +175,9 @@ BLYNK_WRITE(V6) {
     Serial.println("leftindercator: OFF");
   }
 }
+
 BLYNK_WRITE(V7) {
   int RightIndercatorStateNew = param.asInt();
-
 
   if (RightIndercatorStateNew == 1) {
     digitalWrite(rightindercator, HIGH);
@@ -197,14 +193,23 @@ BLYNK_WRITE(V7) {
 void processBluetoothCommand(char command) {
   // Implement your Bluetooth command processing logic here
   // Example: You can map the received commands to specific actions
+  Serial.println(command);
 
   switch (command) {
     case 'F':
+      digitalWrite(IN1, HIGH);
+      digitalWrite(IN2, LOW);
+      digitalWrite(IN3, HIGH);
+      digitalWrite(IN4, LOW);
       // Move forward
       // Implement your motor control logic here
       break;
 
     case 'B':
+      digitalWrite(IN1, LOW);
+      digitalWrite(IN2, HIGH);
+      digitalWrite(IN3, LOW);
+      digitalWrite(IN4, HIGH);
       // Move backward
       // Implement your motor control logic here
       break;
@@ -212,9 +217,8 @@ void processBluetoothCommand(char command) {
     case 'L':
       digitalWrite(IN1, HIGH);
       digitalWrite(IN2, LOW);
-      digitalWrite(IN3, LOW);
-      digitalWrite(IN4, HIGH);
-
+      digitalWrite(IN3, HIGH);
+      digitalWrite(IN4, LOW);
       // Turn left
       // Implement your motor control logic here
       break;
@@ -224,12 +228,15 @@ void processBluetoothCommand(char command) {
       digitalWrite(IN2, HIGH);
       digitalWrite(IN3, HIGH);
       digitalWrite(IN4, LOW);
-
       // Turn right
       // Implement your motor control logic here
       break;
 
     case 'S':
+      digitalWrite(IN1, LOW);
+      digitalWrite(IN2, LOW);
+      digitalWrite(IN3, LOW);
+      digitalWrite(IN4, LOW);
       // Stop
       // Implement your motor control logic here
       break;
@@ -239,7 +246,7 @@ void processBluetoothCommand(char command) {
       // Implement your headlight control logic here
       break;
 
-      // Add more commands as needed
+    // Add more commands as needed
 
     default:
       // Invalid command
