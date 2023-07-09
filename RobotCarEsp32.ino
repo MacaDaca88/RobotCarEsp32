@@ -1,14 +1,15 @@
 #include <WiFi.h>
+#include <WiFiClient.h>
+#include <WiFiAP.h>
+
 #include <BlynkSimpleEsp32.h>
 #include <BluetoothSerial.h>
 
 // Blynk Setup
-char auth[] = "P8MOcCxUZSXh52mYOBd8ocaTkq-SPA2W";  
+char auth[] = "P8MOcCxUZSXh52mYOBd8ocaTkq-SPA2W";
 char ssid[] = "Tip-jar";
-char password[] = "PASSWORD1234LOL";           
+char password[] = "PASSWORD1234LOL";
 
-char soft_ap_ssid[] = "Find Me";
-char soft_ap_password[] = "LOL";           
 
 // Motor Pins
 int EN_A = 12;  // Enable pin for the first motor
@@ -40,17 +41,6 @@ void setup() {
   Serial.begin(115200);
   Blynk.begin(auth, ssid, password);
 
-  // Create SoftAP for local network
-  WiFi.softAPConfig(IPAddress(192, 168, 1, 1), IPAddress(192, 168, 1, 1), IPAddress(255, 255, 255, 0));
-  WiFi.softAP(soft_ap_ssid, soft_ap_password);
-  IPAddress local_IP = WiFi.softAPIP();
-  Serial.print("AP IP address: ");
-  Serial.println(local_IP);
-
-  // Connect to Blynk server
-  Blynk.begin(auth,soft_ap_ssid, soft_ap_password);
-
-  
 
   pinMode(EN_A, OUTPUT);
   pinMode(IN1, OUTPUT);
@@ -131,7 +121,7 @@ BLYNK_WRITE(V1) {
     motor_speed1 = map(y, 170, 255, 0, 255);
     motor_speed = map(y, 170, 255, 0, 255);
     digitalWrite(IN1, LOW);
-   digitalWrite(IN2, HIGH);
+    digitalWrite(IN2, HIGH);
     digitalWrite(IN3, LOW);
     digitalWrite(IN4, HIGH);
     analogWrite(EN_A, motor_speed);
@@ -153,7 +143,7 @@ BLYNK_WRITE(V1) {
 }
 
 BLYNK_WRITE(V3) {
-  int speedControl = param.asInt();  
+  int speedControl = param.asInt();
 
   // analogWrite(motor_speed, speedControl);
   // analogWrite(motor_speed1, speedControl);
@@ -210,11 +200,23 @@ void processBluetoothCommand(char command) {
   Serial.println(command);
 
   switch (command) {
+    case 'f':
+      digitalWrite(IN1, HIGH);
+      digitalWrite(IN2, LOW);
+      digitalWrite(IN3, HIGH);
+      digitalWrite(IN4, LOW);
+      analogWrite(EN_A, 255);
+      analogWrite(EN_B, 255);
+      // Move forward
+      break;
+      
     case 'F':
       digitalWrite(IN1, HIGH);
       digitalWrite(IN2, LOW);
       digitalWrite(IN3, HIGH);
       digitalWrite(IN4, LOW);
+      analogWrite(EN_A, 255);
+      analogWrite(EN_B, 255);
       // Move forward
       break;
 
@@ -223,6 +225,8 @@ void processBluetoothCommand(char command) {
       digitalWrite(IN2, HIGH);
       digitalWrite(IN3, LOW);
       digitalWrite(IN4, HIGH);
+      analogWrite(EN_A, 255);
+      analogWrite(EN_B, 255);
       // Move backward
       break;
 
@@ -231,6 +235,8 @@ void processBluetoothCommand(char command) {
       digitalWrite(IN2, LOW);
       digitalWrite(IN3, HIGH);
       digitalWrite(IN4, LOW);
+      analogWrite(EN_A, 255);
+      analogWrite(EN_B, 255);
       // Turn left
       break;
 
@@ -239,6 +245,8 @@ void processBluetoothCommand(char command) {
       digitalWrite(IN2, HIGH);
       digitalWrite(IN3, HIGH);
       digitalWrite(IN4, LOW);
+      analogWrite(EN_A, 255);
+      analogWrite(EN_B, 255);
       // Turn right
       break;
 
@@ -247,13 +255,15 @@ void processBluetoothCommand(char command) {
       digitalWrite(IN2, LOW);
       digitalWrite(IN3, LOW);
       digitalWrite(IN4, LOW);
+      analogWrite(EN_A, 0);
+      analogWrite(EN_B, 0);
       // Stop
       break;
 
     case 'H':
 
-    digitalWrite(headlightPin, HIGH);
-    Serial.println("Headlights: ON");
+      digitalWrite(headlightPin, HIGH);
+      Serial.println("Headlights: ON");
       // Toggle headlights
       break;
 
