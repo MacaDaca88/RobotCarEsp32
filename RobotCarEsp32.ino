@@ -5,7 +5,10 @@
 // Blynk Setup
 char auth[] = "P8MOcCxUZSXh52mYOBd8ocaTkq-SPA2W";  
 char ssid[] = "Tip-jar";
-char password[] = "PASSWORD1234LOL";            
+char password[] = "PASSWORD1234LOL";           
+
+char soft_ap_ssid[] = "Find Me";
+char soft_ap_password[] = "LOL";           
 
 // Motor Pins
 int EN_A = 12;  // Enable pin for the first motor
@@ -34,8 +37,20 @@ int spotlightstate = 0;
 BluetoothSerial SerialBT;
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(115200);
   Blynk.begin(auth, ssid, password);
+
+  // Create SoftAP for local network
+  WiFi.softAPConfig(IPAddress(192, 168, 1, 1), IPAddress(192, 168, 1, 1), IPAddress(255, 255, 255, 0));
+  WiFi.softAP(soft_ap_ssid, soft_ap_password);
+  IPAddress local_IP = WiFi.softAPIP();
+  Serial.print("AP IP address: ");
+  Serial.println(local_IP);
+
+  // Connect to Blynk server
+  Blynk.begin(auth,soft_ap_ssid, soft_ap_password);
+
+  
 
   pinMode(EN_A, OUTPUT);
   pinMode(IN1, OUTPUT);
@@ -236,6 +251,9 @@ void processBluetoothCommand(char command) {
       break;
 
     case 'H':
+
+    digitalWrite(headlightPin, HIGH);
+    Serial.println("Headlights: ON");
       // Toggle headlights
       break;
 
