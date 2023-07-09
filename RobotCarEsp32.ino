@@ -1,5 +1,6 @@
 #include <WiFi.h>
 #include <BlynkSimpleEsp32.h>
+#include <BluetoothSerial.h>
 
 //Blynk Setup
 char auth[] = "P8MOcCxUZSXh52mYOBd8ocaTkq-SPA2W";  // Your Blynk auth token
@@ -16,7 +17,7 @@ int IN3 = 26;   // Control pin 1 for the second motor
 int IN4 = 25;   // Control pin 2 for the second motor
 
 // Light Pins
-const int headlightPin = 2;  
+const int headlightPin = 2;
 const int spotlight = 0;
 const int leftindercator = 4;
 const int rightindercator = 15;
@@ -31,9 +32,12 @@ int rightindecatorstate = 0;
 int leftindecatorstate = 0;
 int spotlightstate = 0;
 
+
+BluetoothSerial SerialBT;
+
 void setup() {
   Serial.begin(9600);
-  Blynk.begin(auth, ssid, password);  
+  Blynk.begin(auth, ssid, password);
 
   pinMode(EN_A, OUTPUT);
   pinMode(IN1, OUTPUT);
@@ -46,18 +50,15 @@ void setup() {
   pinMode(rightindercator, OUTPUT);
   pinMode(spotlight, OUTPUT);
 
-  // Set up virtual pins
- // Blynk.virtualWrite(V1, 0);                  // Initialize virtual pin V1 to 0
-  //Blynk.virtualWrite(V2, 0);                  // Initialize virtual pin V2 to 0
-  //Blynk.virtualWrite(V3, 0);                  // Initialize virtual pin V3 to 0
-  //Blynk.virtualWrite(V4, 0);                  // Initialize virtual pin V4 to 0
-  //Blynk.virtualWrite(V5, "Headlights: OFF");  // Initialize virtual pin V5 to "Headlights: OFF"
-  ///Blynk.virtualWrite(V6, 0);                  // Initialize virtual pin V6 to 0
-  //Blynk.virtualWrite(V7, 0);                  // Initialize virtual pin V7 to 0
+  SerialBT.begin("The Worlds End");
 }
 
 void loop() {
-  Blynk.run();  // Run Blynk communication
+  Blynk.run();
+  if (SerialBT.available()) {                  // Check if data is available from Bluetooth device
+    processBluetoothCommand(SerialBT.read());  // Process the received command
+    Serial.println(SerialBT.read());
+  }
 }
 
 BLYNK_WRITE(V1) {
@@ -69,8 +70,8 @@ BLYNK_WRITE(V1) {
   Serial.println(x);
 
 
-  if (x < 120) {                           
-    motor_speed = map(x, 120, 0, 0, 255);  
+  if (x < 120) {
+    motor_speed = map(x, 120, 0, 0, 255);
     motor_speed1 = map(x, 120, 0, 0, 255);
 
     digitalWrite(IN1, HIGH);
@@ -85,7 +86,7 @@ BLYNK_WRITE(V1) {
     Serial.println(motor_speed1);
 
   } else if (x > 170 && x < 255) {
-    motor_speed = map(x, 170, 255, 0, 255); 
+    motor_speed = map(x, 170, 255, 0, 255);
     motor_speed1 = map(x, 170, 255, 0, 255);
     digitalWrite(IN1, LOW);
     digitalWrite(IN2, HIGH);
@@ -99,8 +100,7 @@ BLYNK_WRITE(V1) {
     Serial.print(motor_speed1);
   }
 
-
-  if (y < 120) {  
+  if (y < 120) {
     motor_speed1 = map(y, 120, 0, 0, 255);
     motor_speed = map(y, 120, 0, 0, 255);
     digitalWrite(IN1, HIGH);
@@ -113,7 +113,9 @@ BLYNK_WRITE(V1) {
     Serial.println(motor_speed);
     Serial.print("Motor B Speed: ");
     Serial.println(motor_speed1);
-  } else if (y > 170 && y < 255) {  
+    
+    //Motors forward
+  } else if (y > 170 && y < 255) {
     motor_speed1 = map(y, 170, 255, 0, 255);
     motor_speed = map(y, 170, 255, 0, 255);
     digitalWrite(IN1, LOW);
@@ -128,7 +130,7 @@ BLYNK_WRITE(V1) {
     Serial.println(motor_speed1);
 
     // Motors OFF
-  } else if ((x > 120 && x < 170) && (y > 120 && y <170)) {  
+  } else if ((x > 120 && x < 170) && (y > 120 && y < 170)) {
     digitalWrite(IN1, LOW);
     digitalWrite(IN2, LOW);
     digitalWrite(IN3, LOW);
@@ -150,44 +152,97 @@ BLYNK_WRITE(V3) {
 }
 
 BLYNK_WRITE(V4) {
-  int headlightsStateNew = param.asInt();  
+  int headlightsStateNew = param.asInt();
 
-  
+
   if (headlightsStateNew == 1) {
-    digitalWrite(headlightPin, HIGH);  
+    digitalWrite(headlightPin, HIGH);
     Blynk.virtualWrite(V5, "Headlights: ON");
     Serial.println("Headlights: ON");
   } else {
-    digitalWrite(headlightPin, LOW);  
+    digitalWrite(headlightPin, LOW);
     Blynk.virtualWrite(V5, "Headlights: OFF");
     Serial.println("Headlights: OFF");
   }
 }
 
 BLYNK_WRITE(V6) {
-  int LeftIndercatorStateNew = param.asInt();  
+  int LeftIndercatorStateNew = param.asInt();
 
   if (LeftIndercatorStateNew == 1) {
-    digitalWrite(leftindercator, HIGH);  
+    digitalWrite(leftindercator, HIGH);
     Blynk.virtualWrite(V5, "leftindercator: ON");
     Serial.println("leftindercator: ON");
   } else {
-    digitalWrite(leftindercator, LOW);  
+    digitalWrite(leftindercator, LOW);
     Blynk.virtualWrite(V5, "leftindercator: OFF");
     Serial.println("leftindercator: OFF");
   }
 }
 BLYNK_WRITE(V7) {
-  int RightIndercatorStateNew = param.asInt();  
+  int RightIndercatorStateNew = param.asInt();
 
-  
+
   if (RightIndercatorStateNew == 1) {
-    digitalWrite(rightindercator, HIGH);  
+    digitalWrite(rightindercator, HIGH);
     Blynk.virtualWrite(V5, "rightindercator: ON");
     Serial.println("rightindercator: ON");
   } else {
-    digitalWrite(rightindercator, LOW);  
+    digitalWrite(rightindercator, LOW);
     Blynk.virtualWrite(V5, "rightindercator: OFF");
     Serial.println("rightindercator: OFF");
+  }
+}
+
+void processBluetoothCommand(char command) {
+  // Implement your Bluetooth command processing logic here
+  // Example: You can map the received commands to specific actions
+
+  switch (command) {
+    case 'F':
+      // Move forward
+      // Implement your motor control logic here
+      break;
+
+    case 'B':
+      // Move backward
+      // Implement your motor control logic here
+      break;
+
+    case 'L':
+      digitalWrite(IN1, HIGH);
+      digitalWrite(IN2, LOW);
+      digitalWrite(IN3, LOW);
+      digitalWrite(IN4, HIGH);
+
+      // Turn left
+      // Implement your motor control logic here
+      break;
+
+    case 'R':
+      digitalWrite(IN1, LOW);
+      digitalWrite(IN2, HIGH);
+      digitalWrite(IN3, HIGH);
+      digitalWrite(IN4, LOW);
+
+      // Turn right
+      // Implement your motor control logic here
+      break;
+
+    case 'S':
+      // Stop
+      // Implement your motor control logic here
+      break;
+
+    case 'H':
+      // Toggle headlights
+      // Implement your headlight control logic here
+      break;
+
+      // Add more commands as needed
+
+    default:
+      // Invalid command
+      break;
   }
 }
