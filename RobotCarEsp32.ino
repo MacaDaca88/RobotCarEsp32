@@ -201,43 +201,70 @@ void processBluetoothCommand(char command) {
 
   switch (command) {
     case 'f':
-      digitalWrite(IN1, HIGH);
-      digitalWrite(IN2, LOW);
-      digitalWrite(IN3, HIGH);
-      digitalWrite(IN4, LOW);
-      analogWrite(EN_A, 255);
-      analogWrite(EN_B, 255);
-      // Move forward
-      break;
-      
-    case 'F':
-      digitalWrite(IN1, HIGH);
-      digitalWrite(IN2, LOW);
-      digitalWrite(IN3, HIGH);
-      digitalWrite(IN4, LOW);
-      analogWrite(EN_A, 255);
-      analogWrite(EN_B, 255);
-      // Move forward
+      digitalWrite(IN1, LOW);
+      digitalWrite(IN2, HIGH);
+      digitalWrite(IN3, LOW);
+      digitalWrite(IN4, HIGH);
+      analogWrite(EN_A, 100);
+      analogWrite(EN_B, 100);
+      // Move forward slow
       break;
 
-    case 'B':
+    case 'F':
       digitalWrite(IN1, LOW);
       digitalWrite(IN2, HIGH);
       digitalWrite(IN3, LOW);
       digitalWrite(IN4, HIGH);
       analogWrite(EN_A, 255);
       analogWrite(EN_B, 255);
-      // Move backward
+      // Move forward
+      break;
+  case 'b':
+      digitalWrite(IN1, HIGH);
+      digitalWrite(IN2, LOW);
+      digitalWrite(IN3, HIGH);
+      digitalWrite(IN4, LOW);
+      analogWrite(EN_A, 100);
+      analogWrite(EN_B, 100);
+      // Move backward SLOW
       break;
 
-    case 'L':
+    case 'B':
       digitalWrite(IN1, HIGH);
       digitalWrite(IN2, LOW);
       digitalWrite(IN3, HIGH);
       digitalWrite(IN4, LOW);
       analogWrite(EN_A, 255);
       analogWrite(EN_B, 255);
+      // Move backward
+      break;
+   case 'l':
+      digitalWrite(IN1, HIGH);
+      digitalWrite(IN2, LOW);
+      digitalWrite(IN3, LOW);
+      digitalWrite(IN4, HIGH);
+      analogWrite(EN_A, 150);
+      analogWrite(EN_B, 150);
+      // Turn left SLOW
+      break;
+
+    case 'L':
+      digitalWrite(IN1, HIGH);
+      digitalWrite(IN2, LOW);
+      digitalWrite(IN3, LOW);
+      digitalWrite(IN4, HIGH);
+      analogWrite(EN_A, 255);
+      analogWrite(EN_B, 255);
       // Turn left
+      break;
+    case 'r':
+      digitalWrite(IN1, LOW);
+      digitalWrite(IN2, HIGH);
+      digitalWrite(IN3, HIGH);
+      digitalWrite(IN4, LOW);
+      analogWrite(EN_A, 150);
+      analogWrite(EN_B, 150);
+      // Turn right SLOW
       break;
 
     case 'R':
@@ -260,6 +287,12 @@ void processBluetoothCommand(char command) {
       // Stop
       break;
 
+    case 'h':
+
+      digitalWrite(headlightPin, LOW);
+      Serial.println("Headlights: off");
+      // Toggle headlights
+      break;
     case 'H':
 
       digitalWrite(headlightPin, HIGH);
