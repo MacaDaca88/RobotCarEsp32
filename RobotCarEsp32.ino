@@ -1,7 +1,6 @@
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <WiFiAP.h>
-
 #include <BlynkSimpleEsp32.h>
 #include <BluetoothSerial.h>
 
@@ -10,6 +9,11 @@ char auth[] = "P8MOcCxUZSXh52mYOBd8ocaTkq-SPA2W";
 char ssid[] = "Tip-jar";
 char password[] = "PASSWORD1234LOL";
 
+#define maxChar 32
+char message[maxChar];
+char readChar;
+byte index1 = 0;
+int i;
 
 // Motor Pins
 int EN_A = 12;  // Enable pin for the first motor
@@ -35,12 +39,19 @@ int rightindercatorstate = 0;
 int leftindercatorstate = 0;
 int spotlightstate = 0;
 
+// BlinkWithoutDelay variables for indicators
+unsigned long previousLeftIndercatorMillis = 0;
+unsigned long previousRightIndercatorMillis = 0;
+const unsigned long leftIndercatorInterval = 500;   // Interval for left indicator (in milliseconds)
+const unsigned long rightIndercatorInterval = 500;  // Interval for right indicator (in milliseconds)
+bool leftIndercatorState = false;
+bool rightIndercatorState = false;
+
 BluetoothSerial SerialBT;
 
 void setup() {
   Serial.begin(115200);
   Blynk.begin(auth, ssid, password);
-
 
   pinMode(EN_A, OUTPUT);
   pinMode(IN1, OUTPUT);
@@ -58,9 +69,25 @@ void setup() {
 
 void loop() {
   Blynk.run();
-  if (SerialBT.available()) {                  // Check if data is available from Bluetooth device
-    processBluetoothCommand(SerialBT.read());  // Process the received command
+  unsigned long currentMillis = millis();
+
+  if (SerialBT.available()) {
+    processBluetoothCommand(SerialBT.read());
+  } else if (SerialBT.available()) {
+    messageBluetoothCommand();
     Serial.println(SerialBT.read());
+  }
+  if (currentMillis - previousLeftIndercatorMillis >= leftIndercatorInterval) {
+    previousLeftIndercatorMillis = currentMillis;
+    leftIndercatorState = !leftIndercatorState;  // Toggle the state
+    digitalWrite(leftindercator, leftIndercatorState);
+  }
+
+  // Check and update right indicator
+  if (currentMillis - previousRightIndercatorMillis >= rightIndercatorInterval) {
+    previousRightIndercatorMillis = currentMillis;
+    rightIndercatorState = !rightIndercatorState;  // Toggle the state
+    digitalWrite(rightindercator, rightIndercatorState);
   }
 }
 
@@ -188,6 +215,7 @@ BLYNK_WRITE(V7) {
     digitalWrite(rightindercator, HIGH);
     Blynk.virtualWrite(V5, "rightindercator: ON");
     Serial.println("rightindercator: ON");
+
   } else {
     digitalWrite(rightindercator, LOW);
     Blynk.virtualWrite(V5, "rightindercator: OFF");
@@ -196,8 +224,11 @@ BLYNK_WRITE(V7) {
 }
 
 void processBluetoothCommand(char command) {
+  int speed = motor_speed;
+  int speed1 = motor_speed1;
 
   Serial.println(command);
+
 
   switch (command) {
     case 'f':
@@ -205,8 +236,8 @@ void processBluetoothCommand(char command) {
       digitalWrite(IN2, HIGH);
       digitalWrite(IN3, LOW);
       digitalWrite(IN4, HIGH);
-      analogWrite(EN_A, 100);
-      analogWrite(EN_B, 100);
+      analogWrite(EN_A, motor_speed);
+      analogWrite(EN_B, motor_speed1);
       // Move forward slow
       break;
 
@@ -217,9 +248,10 @@ void processBluetoothCommand(char command) {
       digitalWrite(IN4, HIGH);
       analogWrite(EN_A, 255);
       analogWrite(EN_B, 255);
-      // Move forward
+      // Move forward fast
       break;
-  case 'b':
+
+    case 'b':
       digitalWrite(IN1, HIGH);
       digitalWrite(IN2, LOW);
       digitalWrite(IN3, HIGH);
@@ -236,9 +268,10 @@ void processBluetoothCommand(char command) {
       digitalWrite(IN4, LOW);
       analogWrite(EN_A, 255);
       analogWrite(EN_B, 255);
-      // Move backward
+      // Move backward Fast
       break;
-   case 'l':
+
+    case 'l':
       digitalWrite(IN1, HIGH);
       digitalWrite(IN2, LOW);
       digitalWrite(IN3, LOW);
@@ -255,8 +288,9 @@ void processBluetoothCommand(char command) {
       digitalWrite(IN4, HIGH);
       analogWrite(EN_A, 255);
       analogWrite(EN_B, 255);
-      // Turn left
+      // Turn left Fast
       break;
+
     case 'r':
       digitalWrite(IN1, LOW);
       digitalWrite(IN2, HIGH);
@@ -288,21 +322,62 @@ void processBluetoothCommand(char command) {
       break;
 
     case 'h':
-
       digitalWrite(headlightPin, LOW);
       Serial.println("Headlights: off");
       // Toggle headlights
       break;
-    case 'H':
 
+    case 'H':
       digitalWrite(headlightPin, HIGH);
       Serial.println("Headlights: ON");
       // Toggle headlights
       break;
 
+    case '1':
+      // limit EN_A Pin to 100
+      motor_speed = 100;
+      motor_speed1 = 100;
+
+      // Toggle Speed 1
+      break;
+
+    case '2':
+      // limit EN_A Pin to 150
+      motor_speed = 150;
+      motor_speed1 = 150;
+
+      // Toggle Speed 2
+      break;
+
+    case '3':
+      // limit EN_A Pin to 255
+      motor_speed = 255;
+      motor_speed1 = 255;
+
+      // Toggle Speed 3
+      break;
 
     default:
       // Invalid command
       break;
   }
+}
+
+void messageBluetoothCommand(){
+
+if (SerialBT.available()) {
+    for (i = 0; i < 31; i++) {
+      message[i] = '\0';
+    }
+    index1 = 0;
+  }
+  while (SerialBT.available() > 0) {
+    if (index1 < (maxChar - 1)) {
+      readChar = SerialBT.read();
+      message[index1] = readChar;
+      index1++;
+      message[index1] = '\0';
+    }
+  }
+  Serial.print(message);
 }
