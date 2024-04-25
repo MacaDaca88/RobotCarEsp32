@@ -1,10 +1,21 @@
+#define BLYNK_PRINT Serial
+
+#define BLYNK_TEMPLATE_ID "TMPL287iALslr"
+#define BLYNK_TEMPLATE_NAME "Robot"
+#define BLYNK_AUTH_TOKEN "P8MOcCxUZSXh52mYOBd8ocaTkq-SPA2W"
+
+#include <ESPmDNS.h>
+#include <WiFiUdp.h>
+#include <ArduinoOTA.h>
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <WiFiAP.h>
 #include <BlynkSimpleEsp32.h>
 #include <BluetoothSerial.h>
 
+
 // Blynk Setup
+
 char auth[] = "P8MOcCxUZSXh52mYOBd8ocaTkq-SPA2W";
 char ssid[] = "Tip-jar";
 char password[] = "PASSWORD1234LOL";
@@ -16,12 +27,12 @@ byte index1 = 0;
 int i;
 
 // Motor Pins
-int EN_A = 12;  // Enable pin for the first motor
-int IN1 = 14;   // Control pin 1 for the first motor
-int IN2 = 27;   // Control pin 2 for the first motor
-int EN_B = 33;  // Enable pin for the second motor
-int IN3 = 26;   // Control pin 1 for the second motor
-int IN4 = 25;   // Control pin 2 for the second motor
+const int EN_A = 12;  // Enable pin for the first motor
+const int IN1 = 14;   // Control pin 1 for the first motor
+const int IN2 = 27;   // Control pin 2 for the first motor
+const int EN_B = 33;  // Enable pin for the second motor
+const int IN3 = 26;   // Control pin 1 for the second motor
+const int IN4 = 25;   // Control pin 2 for the second motor
 
 // Light Pins
 const int headlightPin = 2;
@@ -51,6 +62,60 @@ BluetoothSerial SerialBT;
 
 void setup() {
   Serial.begin(115200);
+  WiFi.mode(WIFI_STA);
+
+  WiFi.begin(ssid,password);
+  while (WiFi.waitForConnectResult() != WL_CONNECTED) {
+    Serial.println("Connection Failed! Rebooting...");
+    delay(5000);
+    ESP.restart();
+  }
+
+  // Port defaults to 3232
+  // ArduinoOTA.setPort(3232);
+
+  // Hostname defaults to esp3232-[MAC]
+   //ArduinoOTA.setHostname("Robot");
+
+  // No authentication by default
+  // ArduinoOTA.setPassword("admin");
+
+  // Password can be set with it's md5 value as well
+  // MD5(admin) = 21232f297a57a5a743894a0e4a801fc3
+  // ArduinoOTA.setPasswordHash("upload");
+
+  ArduinoOTA
+    .onStart([]() {
+      String type;
+      if (ArduinoOTA.getCommand() == U_FLASH)
+        type = "sketch";
+      else // U_SPIFFS
+        type = "filesystem";
+
+      // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+      Serial.println("Start updating " + type);
+    })
+    .onEnd([]() {
+      Serial.println("\nEnd");
+    })
+    .onProgress([](unsigned int progress, unsigned int total) {
+      Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+    })
+    .onError([](ota_error_t error) {
+      Serial.printf("Error[%u]: ", error);
+      if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
+      else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
+      else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
+      else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
+      else if (error == OTA_END_ERROR) Serial.println("End Failed");
+    });
+
+  ArduinoOTA.begin();
+
+  Serial.println("Ready");
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());
+
   Blynk.begin(auth, ssid, password);
 
   pinMode(EN_A, OUTPUT);
@@ -68,6 +133,8 @@ void setup() {
 }
 
 void loop() {
+  ArduinoOTA.handle();
+
   Blynk.run();
   unsigned long currentMillis = millis();
 
